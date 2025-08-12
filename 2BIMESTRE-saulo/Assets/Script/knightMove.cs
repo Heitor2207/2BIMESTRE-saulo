@@ -3,17 +3,18 @@ using UnityEngine;
 
 public class Player : MonoBehaviour
 {
-    
     public float velocidade = 40;
-    public float forcaDoPulo = 4;
-    
-    private bool noChao = false;
+    public float forcadopulo = 4;
+    public float velocidaderolagem = 60; // velocidade extra para rolar
+
+    private bool nochao = false;
     private bool andando = false;
-    
+    private bool rolando = false;
+
     private SpriteRenderer sprite;
     private Rigidbody2D rb;
     private Animator animator;
-    
+
     void Start()
     {
         sprite = GetComponent<SpriteRenderer>();
@@ -21,50 +22,67 @@ public class Player : MonoBehaviour
         animator = GetComponent<Animator>();
     }
 
-       
     void Update()
     {
         andando = false;
-        
+        rolando = false;
+
+        // Movimento para esquerda
         if (Input.GetKey(KeyCode.A))
         {
-            gameObject.transform.position += new Vector3(-velocidade * Time.deltaTime,0,0);
+            float vel = velocidade * Time.deltaTime;
+
+            if (Input.GetKey(KeyCode.LeftShift)) // rolar
+            {
+                vel = velocidaderolagem * Time.deltaTime;
+                rolando = true;
+            }
+            gameObject.transform.position += new Vector3(-vel, 0, 0);
             sprite.flipX = true;
-            andando = true;
+            andando = !rolando;
         }
-        
+
+        // Movimento para direita
         if (Input.GetKey(KeyCode.D))
         {
-            gameObject.transform.position += new Vector3(velocidade * Time.deltaTime,0,0);
+            float vel = velocidade * Time.deltaTime;
+
+            if (Input.GetKey(KeyCode.LeftShift)) // rolar
+            {
+                vel = velocidaderolagem * Time.deltaTime;
+                rolando = true;
+            }
+            gameObject.transform.position += new Vector3(vel, 0, 0);
             sprite.flipX = false;
-            andando = true;
+            andando = !rolando;
         }
 
-        if (Input.GetKeyDown(KeyCode.Space) && noChao == true)
+        // Pulo
+        if (Input.GetKeyDown(KeyCode.Space) && nochao == true)
         {
-            rb.AddForce(new Vector2(0,forcaDoPulo), ForceMode2D.Impulse);
+            rb.AddForce(new Vector2(0, forcadopulo), ForceMode2D.Impulse);
         }
 
-        animator.SetBool("Andando",andando);
-        animator.SetBool("Pulo",!noChao);
-        
+        // Define estados no Animator
+        animator.SetBool("parado", !andando && !rolando && nochao);
+        animator.SetBool("andando", andando);
+        animator.SetBool("rolando", rolando);
+        animator.SetBool("pulo", !nochao);
     }
 
     void OnCollisionEnter2D(Collision2D colisao)
     {
-        //if (colisao.gameObject.tag == "Chao")
-        if(colisao.gameObject.CompareTag("Chao"))
+        if (colisao.gameObject.CompareTag("chao"))
         {
-            noChao = true;
+            nochao = true;
         }
     }
 
     void OnCollisionExit2D(Collision2D colisao)
     {
-        if(colisao.gameObject.CompareTag("Chao"))
+        if (colisao.gameObject.CompareTag("chao"))
         {
-            noChao = false;
+            nochao = false;
         }
     }
 }
-
