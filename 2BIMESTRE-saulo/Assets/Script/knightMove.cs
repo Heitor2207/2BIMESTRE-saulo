@@ -5,7 +5,7 @@ public class Player : MonoBehaviour
 {
     public float velocidade = 40;
     public float forcadopulo = 4;
-    public float velocidaderolagem = 60; // velocidade extra para rolar
+    public float velocidaderolagem = 60; // velocidade extra para rolar (opcional no pulo)
 
     private bool nochao = false;
     private bool andando = false;
@@ -25,47 +25,35 @@ public class Player : MonoBehaviour
     void Update()
     {
         andando = false;
-        rolando = false;
 
         // Movimento para esquerda
         if (Input.GetKey(KeyCode.A))
         {
             float vel = velocidade * Time.deltaTime;
-
-            if (Input.GetKey(KeyCode.LeftShift)) // rolar
-            {
-                vel = velocidaderolagem * Time.deltaTime;
-                rolando = true;
-            }
             gameObject.transform.position += new Vector3(-vel, 0, 0);
             sprite.flipX = true;
-            andando = !rolando;
+            andando = true;
         }
 
         // Movimento para direita
         if (Input.GetKey(KeyCode.D))
         {
             float vel = velocidade * Time.deltaTime;
-
-            if (Input.GetKey(KeyCode.LeftShift)) // rolar
-            {
-                vel = velocidaderolagem * Time.deltaTime;
-                rolando = true;
-            }
             gameObject.transform.position += new Vector3(vel, 0, 0);
             sprite.flipX = false;
-            andando = !rolando;
+            andando = true;
         }
 
-        // Pulo
+        // Pulo + rolar
         if (Input.GetKeyDown(KeyCode.Space) && nochao == true)
         {
             rb.AddForce(new Vector2(0, forcadopulo), ForceMode2D.Impulse);
+            rolando = true; // ativa rolagem no ar
         }
 
         // Define estados no Animator
         animator.SetBool("parado", !andando && !rolando && nochao);
-        animator.SetBool("andando", andando);
+        animator.SetBool("andando", andando && nochao);
         animator.SetBool("rolando", rolando);
         animator.SetBool("pulo", !nochao);
     }
@@ -75,6 +63,7 @@ public class Player : MonoBehaviour
         if (colisao.gameObject.CompareTag("chao"))
         {
             nochao = true;
+            rolando = false; // para de rolar quando tocar no chão
         }
     }
 
